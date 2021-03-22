@@ -19,7 +19,7 @@ def str2int(textnum, numwords={}):
     current = result = 0
     for word in textnum.split():
         if word not in numwords:
-          raise Exception("Illegal word: " + word)
+          return ""
 
         scale, increment = numwords[word]
         current = current * scale + increment
