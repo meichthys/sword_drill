@@ -125,12 +125,7 @@ def start():
                                         continue
                                 # Get chapter & verse numbers
                                 try:
-                                    chapter_word = current[word_count+chapter_index]
-                                    if chapter_word.endswith("ty"):
-                                        if str2int(current[word_count+chapter_index] + 3) != "":
-
-                                    else:
-                                        chapter = str2int(current[word_count + chapter_index].replace("for", "four").replace("to", "two"))
+                                    chapter = str2int(current[word_count + chapter_index].replace("for", "four").replace("to", "two"))
                                 except:
                                     chapter = ""
                                 try:
