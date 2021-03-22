@@ -19,9 +19,10 @@ Any help developing this application is appreciated. Pull-requests are welcome.
 To get started developing:
 
 1. Clone this repository: `git clone https://github.com/meichthys/sword_drill.git`
-2. Open the sword_drill cloned repo and run `pipenv install --dev --pre` to install the python requirements.
-3. Enter the virtual environment by running `pipenv shell`
-4. Run the application by running `python ./src/main.py`
+2. Install pipenv on your machine: `pip install pipenv`
+3. Open the sword_drill cloned repo and run `pipenv install --dev --pre` to install the python requirements.
+4. Enter the virtual environment by running `pipenv shell`
+5. Run the application by running `python ./src/main.py`
 
 ### Voice Recognition Models ###
 
