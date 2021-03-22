@@ -79,23 +79,69 @@ def start():
                 rec = vosk.KaldiRecognizer(model, args.samplerate)
                 while True:
                     data = q.get()
-                    old_len = 0
                     # Get recognized audio
                     if rec.AcceptWaveform(data):
                         latest = rec.PartialResult()
                         rec.Result()
+                        # Parse partial text into a list of words
                         current = eval(latest)["partial"].split()
+                        # Cycle through words looking for book titles
                         word_count = 0
                         for word in current:
-                            if word in books:
+                            # Default chapter to be 1 word after the book title
+                            chapter_index = 1
+                            # Default verse to be 2 words after the book title
+                            verse_index = 2
+                            if ((word in books)
+                                or (word == "song")
+                                or (word == "first")
+                                or (word == "second")
+                                or (word == "third")
+                            ):
+                                # Consider the word to be a book title
                                 book = word
-                                chapter = str2int(current[word_count +1].replace("for", "four"))
-                                verse = str2int(current[word_count+2].replace("for", "four"))
-                                api_url = f"https://bible-api.com/{book}+{chapter}:{verse}"
+                                # Handle Song of Solomon differently since it is three words
+                                if book == "song":
+                                    # Make sure entire book title was parsed
+                                    if not current[word_count+1:word_count+3] == ["of", "solomon"]:
+                                        continue
+                                    book = "song of solomon"
+                                    chapter_index = 3
+                                    verse_index = 4
+                                # Handle books with 'first'/'second'/'third' in title differently
+                                if book == "first" or book == "second" or book == "third":
+                                    # Adjust Chapter/Verse index
+                                    chapter_index = 2
+                                    verse_index = 3
+                                    # Adjust Book Title
+                                    if book == "first":
+                                        book = f"1 {current[word_count+1]}"
+                                    elif book == "second":
+                                        book = f"2 {current[word_count+1]}"
+                                    elif book == "third":
+                                        book = f"3 {current[word_count+1]}"
+                                    # Verify parsed book exists
+                                    if not book in books:
+                                        continue
+                                # Get chapter & verse numbers
+                                try:
+                                    chapter = str2int(current[word_count + chapter_index].replace("for", "four").replace("to", "two"))
+                                except:
+                                    chapter = ""
+                                try:
+                                    verse = str2int(current[word_count + verse_index].replace("for", "four").replace("to", "two"))
+                                except:
+                                    verse = ""
+                                if chapter == "":
+                                    continue
+                                # Show entire chapter if no verse is given
+                                if verse == "":
+                                    api_url = f"https://bible-api.com/{book}+{chapter}"
+                                else:
+                                    api_url = f"https://bible-api.com/{book}+{chapter}:{verse}"
                                 text = requests.get(api_url).json()["text"]
-                                print(f"{word} {chapter}:{verse} \n {text}")
+                                print(f"{book.title()} {chapter}:{verse} \n {text}")
                             word_count += 1
-                    # Add to previous audio in case reference is cut in half
 
                     if dump_fn is not None:
                         dump_fn.write(data)
