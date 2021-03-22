@@ -89,8 +89,8 @@ def start():
                         for word in current:
                             if word in books:
                                 book = word
-                                chapter = str2int(current[word_count +1])
-                                verse = str2int(current[word_count+2])
+                                chapter = str2int(current[word_count +1].replace("for", "four"))
+                                verse = str2int(current[word_count+2].replace("for", "four"))
                                 api_url = f"https://bible-api.com/{book}+{chapter}:{verse}"
                                 text = requests.get(api_url).json()["text"]
                                 print(f"{word} {chapter}:{verse} \n {text}")
