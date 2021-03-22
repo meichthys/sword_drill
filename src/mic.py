@@ -84,7 +84,7 @@ def start():
                         latest = rec.PartialResult()
                         rec.Result()
                         # Parse partial text into a list of words and remove references to 'chapter' and 'verse'
-                        current = eval(latest)["partial"].replace("chapter ", "").replace("verse ", "").split()
+                        current = eval(latest)["partial"].replace("chapter ", "").replace("verse ", "").replace("number ", "").split()
                         # Cycle through words looking for book titles
                         word_count = 0
                         for word in current:
@@ -125,7 +125,12 @@ def start():
                                         continue
                                 # Get chapter & verse numbers
                                 try:
-                                    chapter = str2int(current[word_count + chapter_index].replace("for", "four").replace("to", "two"))
+                                    chapter_word = current[word_count+chapter_index]
+                                    if chapter_word.endswith("ty"):
+                                        if str2int(current[word_count+chapter_index] + 3) != "":
+
+                                    else:
+                                        chapter = str2int(current[word_count + chapter_index].replace("for", "four").replace("to", "two"))
                                 except:
                                     chapter = ""
                                 try:
