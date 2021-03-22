@@ -83,8 +83,8 @@ def start():
                     if rec.AcceptWaveform(data):
                         latest = rec.PartialResult()
                         rec.Result()
-                        # Parse partial text into a list of words
-                        current = eval(latest)["partial"].split()
+                        # Parse partial text into a list of words and remove references to 'chapter' and 'verse'
+                        current = eval(latest)["partial"].replace("chapter ", "").replace("verse ", "").split()
                         # Cycle through words looking for book titles
                         word_count = 0
                         for word in current:
