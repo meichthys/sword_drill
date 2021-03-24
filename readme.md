@@ -13,6 +13,13 @@ This idea of this application was conceptualized prior to 2020, but the COVID pa
 This application should work out of the box with the KJV version.
 To run, simply double click the executable. If you are promoted, allow the program to access your microphone.
 
+### Limitations ###
+
+Currently the following situations are not handled:
+
+- Parsing of Chapters/Verses over 100 (only affects Psalms)
+- Parsing of certain books (Thessalonians, others(?) )
+
 ## Development ##
 
 Any help developing this application is appreciated. Pull-requests are welcome.
