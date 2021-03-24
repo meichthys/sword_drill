@@ -1,5 +1,7 @@
 # Sword Drill #
 
+![Sword Drill Logo](Sword-Drill.png "Sword-Drill Logo")
+
 ## Overview ##
 
 Sword Drill is a speech to text application that listens for Bible references. When it parses a valid Bible Book/Chapter/Verse reference, it will display it on the screen.
