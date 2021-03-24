@@ -1,6 +1,6 @@
 # Sword Drill #
 
-![Sword Drill Logo](Sword-Drill.png "Sword-Drill Logo")
+![Sword Drill Logo](logo.png "Sword-Drill Logo")
 
 ## Overview ##
 
