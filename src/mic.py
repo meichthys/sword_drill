@@ -16,12 +16,24 @@ def cleanup_speech(speech):
         speech: spoken words as list of one-word strings
     RETURNS: new list of one word strings with replacements
     """
+    # Cleanup mis-recognized book names
+    speech = speech.replace(
+        "axe", "acts").replace(
+        "zachariah", "zechariah").replace(
+        "malik i won", "malachi one").replace(
+        "philippines", "philippians").replace(
+        "collections", "colossians").replace(
+        "collisions", "colossians").replace(
+        "dude", "jude").replace(
+        "revelations", "revelation")
 
-    return speech.replace(
+    # Cleanup mis-recognized numbers
+    speech = speech.replace(
         "for", "four").replace(
         "to", "two").replace(
-        "fourty", "forty"
-    )
+        "fourty", "forty")
+
+    return speech
 
 
 def load_model():
@@ -41,20 +53,22 @@ def parse_stream(recognizer, stream):
         stream: stream of recognized text
     """
     # Define book names (used as triggers to start looking for chapters/verses)
-    books = ["genesis","exodus","leviticus","numbers","deuteronomy","joshua","judges","ruth","1 samuel","2 samuel","1 kings","2 kings","1 chronicles","2 chronicles","ezra","nehemiah","esther","job","psalms","proverbs","ecclesiastes","song of solomon","isaiah","jeremiah","lamentations","ezekiel","daniel","hosea","joel","amos","obadiah","jonah","micah","nahum","habakkuk","zephaniah","haggai","zechariah","malachi ","matthew","mark","luke","john","the acts","romans","1 corinthians","2 corinthians","galatians","ephesians","philippians","colossians","1 thessalonians","2 thessalonians","1 timothy","2 timothy","titus","philemon","hebrews","james","1 peter","2 peter","1 john","2 john","3 john","jude","revelation"]
+    books = ["genesis","exodus","leviticus","numbers","deuteronomy","joshua","judges","ruth","1 samuel","2 samuel","1 kings","2 kings","1 chronicles","2 chronicles","ezra","nehemiah","esther","job","psalms","proverbs","ecclesiastes","song of solomon","isaiah","jeremiah","lamentations","ezekiel","daniel","hosea","joel","amos","obadiah","jonah","micah","nahum","habakkuk","zephaniah","haggai","zechariah","malachi","matthew","mark","luke","john","acts","romans","1 corinthians","2 corinthians","galatians","ephesians","philippians","colossians","1 thessalonians","2 thessalonians","1 timothy","2 timothy","titus","philemon","hebrews","james","1 peter","2 peter","1 john","2 john","3 john","jude","revelation"]
 
     # If recording is still active, skip parsing
     if not recognizer.AcceptWaveform(stream.get()):
         return
     # If recording has finished a chunk, then parse
-    raw = eval(recognizer.PartialResult())['partial'].split()
+    recognized_text = eval(recognizer.PartialResult())['partial']
+    # Cleanup spoken text and split into list
+    words = cleanup_speech(recognized_text).split()
     recognizer.Result()
     # Filler words to be ignored durring parsing
     chapter_filler_words = ["chapter"]
     verse_filler_words = ["verse", "and"]
     # Cycle through words looking for book titles
     index = 0
-    for word in raw:
+    for word in words:
         if ((word in books)
             or (word == "song")
             or (word == "first")
@@ -68,7 +82,7 @@ def parse_stream(recognizer, stream):
             # Handle Song of Solomon differently since it is three words
             if book == "song":
                 # Make sure entire book title was parsed
-                if not raw[index+1:index+3] == ["of", "solomon"]:
+                if not words[index+1:index+3] == ["of", "solomon"]:
                     index += 1
                     continue
                 book = "song of solomon"
@@ -77,17 +91,17 @@ def parse_stream(recognizer, stream):
             if book == "first" or book == "second" or book == "third":
                 # Adjust Book Title
                 if book == "first":
-                    book = f"1 {raw[index+1]}"
+                    book = f"1 {words[index+1]}"
                     # remove the book from the text to prevent book of John from also showing
-                    raw.remove(raw[index+1])
+                    words.remove(words[index+1])
                 elif book == "second":
-                    book = f"2 {raw[index+1]}"
+                    book = f"2 {words[index+1]}"
                     # remove the book from the text to prevent book of John from also showing
-                    raw.remove(raw[index+1])
+                    words.remove(words[index+1])
                 elif book == "third":
-                    book = f"3 {raw[index+1]}"
+                    book = f"3 {words[index+1]}"
                     # remove the book from the text to prevent book of John from also showing
-                    raw.remove(raw[index+1])
+                    words.remove(words[index+1])
                 # Verify parsed book exists
                 if not book in books:
                     index += 1
@@ -100,16 +114,16 @@ def parse_stream(recognizer, stream):
             number = 0
             while number < 4 + chap_fillers + verse_fillers:
                 try:
-                    if raw[index+chap_index+number] in chapter_filler_words:
+                    if words[index+chap_index+number] in chapter_filler_words:
                         chap_fillers += 1
                         number += 1
                         continue
-                    elif raw[index+chap_index+number] in verse_filler_words:
+                    elif words[index+chap_index+number] in verse_filler_words:
                         verse_fillers += 1
                         number += 1
                         continue
                     else:
-                        if str2int(cleanup_speech(raw[index+chap_index+number])) != "":
+                        if str2int(words[index+chap_index+number]) != "":
                             ref_numbers += 1
                         number += 1
                 except:
@@ -120,7 +134,7 @@ def parse_stream(recognizer, stream):
                 try:
                     if book in ["obadiah", "philemon", "jude", "2 john", "3 john"]:
                         chapter = 1
-                        verse = str2int(cleanup_speech(raw[index+chap_index]))
+                        verse = str2int(words[index+chap_index])
                     else:
                         index += 1
                         continue
@@ -132,15 +146,15 @@ def parse_stream(recognizer, stream):
             elif ref_numbers == 2:
                 try:
                     # If first word is twenty, check to see if second word is larger than 9, if so, use it as the verse
-                    if raw[index+chap_index+chap_fillers].endswith("ty") and (verse_fillers > 0 or (str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1])) > 9)):
-                        chapter = str2int(cleanup_speech(raw[index+chap_index+chap_fillers]))
-                        verse = str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers]))
-                    elif raw[index+chap_index+chap_fillers].endswith("ty") and verse_fillers == 0:
+                    if words[index+chap_index+chap_fillers].endswith("ty") and (verse_fillers > 0 or (str2int(words[index+chap_index+chap_fillers+1]) > 9)):
+                        chapter = str2int(words[index+chap_index+chap_fillers])
+                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers])
+                    elif words[index+chap_index+chap_fillers].endswith("ty") and verse_fillers == 0:
                         index += 1
                         continue
                     else:
-                        chapter = str2int(cleanup_speech(raw[index+chap_index+chap_fillers]))
-                        verse = str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers]))
+                        chapter = str2int(words[index+chap_index+chap_fillers])
+                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers])
                 except:
                     index += 1
                     continue
@@ -148,25 +162,25 @@ def parse_stream(recognizer, stream):
             # or verse contains two numbers
             elif ref_numbers == 3:
                 try:
-                    if raw[index+chap_index+chap_fillers].endswith("ty") and raw[index+chap_index+chap_fillers+1].endswith("ty"):
-                        chapter = str2int(cleanup_speech(raw[index+chap_index+chap_fillers]))
-                        verse = str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers]))+str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers+1]))
-                    elif raw[index+chap_index+chap_fillers].endswith("ty") and (not raw[index+chap_index+chap_fillers+1].endswith("ty")):
-                        chapter = str2int(cleanup_speech(raw[index+chap_index+chap_fillers]))+str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1]))
-                        verse = str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers+1]))
-                    elif not(raw[index+chap_index+chap_fillers].endswith("ty")) and (raw[index+chap_index+chap_fillers+1].endswith("ty")):
-                        chapter = str2int(cleanup_speech(raw[index+chap_index+chap_fillers]))
-                        verse = str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers+1]))+str2int(cleanup_speech(raw[index+chap_index+chap_fillers+verse_fillers+1]))
+                    if words[index+chap_index+chap_fillers].endswith("ty") and words[index+chap_index+chap_fillers+1].endswith("ty"):
+                        chapter = str2int(words[index+chap_index+chap_fillers])
+                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers])+str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])
+                    elif words[index+chap_index+chap_fillers].endswith("ty") and (not words[index+chap_index+chap_fillers+1].endswith("ty")):
+                        chapter = str2int(words[index+chap_index+chap_fillers])+str2int(words[index+chap_index+chap_fillers+1])
+                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])
+                    elif not(words[index+chap_index+chap_fillers].endswith("ty")) and (words[index+chap_index+chap_fillers+1].endswith("ty")):
+                        chapter = str2int(words[index+chap_index+chap_fillers])
+                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])+str2int(words[index+chap_index+chap_fillers+verse_fillers+1])
                     else:
-                        chapter = str2int(cleanup_speech(raw[index+chap_index+chap_fillers]))+str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1]))
-                        verse = str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers+1]))
+                        chapter = str2int(words[index+chap_index+chap_fillers])+str2int(words[index+chap_index+chap_fillers+1])
+                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])
                 except:
                     index += 1
                     continue
             elif ref_numbers == 4:
                 try:
-                    chapter = str2int(cleanup_speech(raw[index+chap_index+chap_fillers]))+str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1]))
-                    verse = str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers]))+str2int(cleanup_speech(raw[index+chap_index+chap_fillers+1+verse_fillers+1]))
+                    chapter = str2int(words[index+chap_index+chap_fillers])+str2int(words[index+chap_index+chap_fillers+1])
+                    verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])+str2int(words[index+chap_index+chap_fillers+1+verse_fillers+2])
                 except:
                     index += 1
                     continue
