@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import logging
 import os
 import queue
 import sounddevice as sd
@@ -8,6 +9,9 @@ import sys
 
 import requests
 from utils import str2int
+
+import settings
+
 
 
 def cleanup_speech(speech):
@@ -18,20 +22,45 @@ def cleanup_speech(speech):
     """
     # Cleanup mis-recognized book names
     speech = speech.replace(
-        "axe", "acts").replace(
-        "zachariah", "zechariah").replace(
-        "malik i won", "malachi one").replace(
-        "philippines", "philippians").replace(
-        "collections", "colossians").replace(
-        "collisions", "colossians").replace(
-        "dude", "jude").replace(
-        "revelations", "revelation")
+        "axe ", "acts ").replace(
+        "zachariah ", "zechariah ").replace(
+        "malik i won ", "malachi one ").replace(
+        "philippines ", "philippians ").replace(
+        "collections ", "colossians ").replace(
+        "collisions ", "colossians ").replace(
+        "revelations ", "revelation ").replace(
+        "dude around me ", "deuteronomy ").replace(
+        "dude ", "jude ").replace(
+        "joe ", "joel ").replace(
+        "ecclesiastical ", "ecclesiastes ").replace(
+        "ecclesiastic ", "ecclesiastes ").replace(
+        "ecclesiasties ", "ecclesiastes ").replace(
+        "her back ", "habakkuk ").replace(
+        "have a cook ", "habakkuk ").replace(
+        "hi guy ", "haggai ").replace(
+        "her guy ", "haggai ").replace(
+        "how guy  ", "haggai ").replace(
+        "hey i ", "haggai ").replace(
+        "zephyr nine ", "zephaniah ").replace(
+        "there for naya ", "zephaniah ").replace(
+        "that for naya ", "zephaniah ").replace(
+        "the for naya ", "zephaniah ").replace(
+        "korean teams ", "corinthians").replace(
+        "clinton's ", "corinthians ").replace(
+        "corinthian ", "corinthians ").replace(
+        "relations ", "galatians ").replace(
+        "deletions ", "galatians ").replace(
+        "find them in ", "philemon ").replace(
+        "find them on ", "philemon ").replace(
+        "find lehman ", "philemon ").replace(
+        "find him in ", "philemon ")
 
     # Cleanup mis-recognized numbers
     speech = speech.replace(
+        "won", "one").replace(
         "for", "four").replace(
         "to", "two").replace(
-        "fourty", "forty")
+        "fourty", "four")
 
     return speech
 
@@ -46,22 +75,22 @@ def load_model():
     return vosk.Model(model_name)
 
 
-def parse_stream(recognizer, stream):
+def parse_stream(recognizer, stream, books):
     """Parse recognized text for Bible references
     ARGS:
         recognizer: the vosk recognizer
         stream: stream of recognized text
+        books: list of books of the Bible to parse
     """
-    # Define book names (used as triggers to start looking for chapters/verses)
-    books = ["genesis","exodus","leviticus","numbers","deuteronomy","joshua","judges","ruth","1 samuel","2 samuel","1 kings","2 kings","1 chronicles","2 chronicles","ezra","nehemiah","esther","job","psalms","proverbs","ecclesiastes","song of solomon","isaiah","jeremiah","lamentations","ezekiel","daniel","hosea","joel","amos","obadiah","jonah","micah","nahum","habakkuk","zephaniah","haggai","zechariah","malachi","matthew","mark","luke","john","acts","romans","1 corinthians","2 corinthians","galatians","ephesians","philippians","colossians","1 thessalonians","2 thessalonians","1 timothy","2 timothy","titus","philemon","hebrews","james","1 peter","2 peter","1 john","2 john","3 john","jude","revelation"]
-
     # If recording is still active, skip parsing
     if not recognizer.AcceptWaveform(stream.get()):
         return
     # If recording has finished a chunk, then parse
     recognized_text = eval(recognizer.PartialResult())['partial']
+    logging.debug(f"Recognized text: {recognized_text}")
     # Cleanup spoken text and split into list
     words = cleanup_speech(recognized_text).split()
+    logging.debug(f"Clened up words: {words}")
     recognizer.Result()
     # Filler words to be ignored durring parsing
     chapter_filler_words = ["chapter"]
@@ -77,6 +106,7 @@ def parse_stream(recognizer, stream):
         ):
             # Consider the word to be a book title
             book = word
+            logging.debug(f"{book} recognized.")
             # Default chapter to be 1 word after the book title
             chap_index = 1
             # Handle Song of Solomon differently since it is three words
@@ -128,6 +158,7 @@ def parse_stream(recognizer, stream):
                         number += 1
                 except:
                     break
+            logging.debug(f"{ref_numbers} reference numbers recognized.")
             # If only one number is referenced continue unless book has one chapter
             if ref_numbers == 1:
                 # If book has only one chapter, then assume the number is a verse
@@ -191,12 +222,18 @@ def parse_stream(recognizer, stream):
                 index += 1
                 continue
             else:
-                api_url = f"https://bible-api.com/{book}+{chapter}:{verse}"
+                api_url = f"https://bible-api.com/{book}+{chapter}:{verse}?translation={settings.TRANSLATION}"
+                logging.debug(f"Fetching url: {api_url}")
             try:
                 text = requests.get(api_url).json()["text"]
-                print(f"{book.title()} {chapter}:{verse} \n {text}")
+                display_text = f"{book.title()} {chapter}:{verse} \n {text}"
+                logging.debug(display_text)
+                print(display_text)
             except:
-                print(f"Failed to fetch verse {book.capitalize()} {chapter}:{verse}")
+                error = f"Failed to fetch verse {book.capitalize()} {chapter}:{verse}?translation={settings.TRANSLATION} \n Maybe it doesn't exist?"
+                logging.error(error)
+                print(error)
+
         index += 1
 
 def start():
@@ -218,7 +255,7 @@ def start():
             print('#' * 80)
             print('Press Ctrl+C to stop the recording')
             print('#' * 80)
-
+            logging.debug("Recording starting...")
             # Start speech recognition
             start_recognition(model, samplerate, stream)
 
@@ -236,6 +273,11 @@ def start_recognition(model, samplerate, stream):
         samplerate: integer containing the sample rate
         stream: the audio stream
     """
+    # Setup speech recognizer
     recognizer = vosk.KaldiRecognizer(model, samplerate)
+    # Define book names (used as triggers to start looking for chapters/verses)
+    books = ["genesis","exodus","leviticus","numbers","deuteronomy","joshua","judges","ruth","1 samuel","2 samuel","1 kings","2 kings","1 chronicles","2 chronicles","ezra","nehemiah","esther","job","psalms","proverbs","ecclesiastes","song of solomon","isaiah","jeremiah","lamentations","ezekiel","daniel","hosea","joel","amos","obadiah","jonah","micah","nahum","habakkuk","zephaniah","haggai","zechariah","malachi","matthew","mark","luke","john","acts","romans","1 corinthians","2 corinthians","galatians","ephesians","philippians","colossians","1 thessalonians","2 thessalonians","1 timothy","2 timothy","titus","philemon","hebrews","james","1 peter","2 peter","1 john","2 john","3 john","jude","revelation"]
+    logging.debug(f"Books of Bible: {books}")
+
     while True:
-        parse_stream(recognizer, stream)
+        parse_stream(recognizer, stream, books)

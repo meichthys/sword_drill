@@ -1,25 +1,42 @@
+""" Contains various utility functions """
+
+import logging
+
+import settings
+
+def setup_logging():
+    """ Sets up logging with various handlers """
+
+    logging.basicConfig(
+        level=settings.LOGGING_LEVEL,
+        format='[%(levelname)s][%(asctime)s]: %(message)s',
+        handlers=[
+            logging.FileHandler("sword_drill.log"),
+            logging.StreamHandler()
+        ]
+    )
+
+
 def str2int(textnum, numwords={}):
     """ This was taken from: https://stackoverflow.com/a/493788"""
     if not numwords:
-      units = [
-        "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
-        "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
-        "sixteen", "seventeen", "eighteen", "nineteen",
-      ]
+        units = [
+            "zero", "one", "two", "three", "four", "five", "six", "seven", "eight",
+            "nine", "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen",
+            "sixteen", "seventeen", "eighteen", "nineteen",
+        ]
+        tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
+        scales = ["hundred", "thousand", "million", "billion", "trillion"]
 
-      tens = ["", "", "twenty", "thirty", "forty", "fifty", "sixty", "seventy", "eighty", "ninety"]
-
-      scales = ["hundred", "thousand", "million", "billion", "trillion"]
-
-      numwords["and"] = (1, 0)
-      for idx, word in enumerate(units):    numwords[word] = (1, idx)
-      for idx, word in enumerate(tens):     numwords[word] = (1, idx * 10)
-      for idx, word in enumerate(scales):   numwords[word] = (10 ** (idx * 3 or 2), 0)
+        numwords["and"] = (1, 0)
+        for idx, word in enumerate(units): numwords[word] = (1, idx)
+        for idx, word in enumerate(tens): numwords[word] = (1, idx * 10)
+        for idx, word in enumerate(scales): numwords[word] = (10 ** (idx * 3 or 2), 0)
 
     current = result = 0
     for word in textnum.split():
         if word not in numwords:
-          return ""
+            return ""
 
         scale, increment = numwords[word]
         current = current * scale + increment

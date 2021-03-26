@@ -20,7 +20,10 @@ To run, simply double click the executable. If you are promoted, allow the progr
 Currently the following situations are not handled:
 
 - Parsing of Chapters/Verses over 100 (only affects Psalms)
-- Parsing of certain books (Thessalonians, others(?) )
+- Some books are almost never correctly recognized (most are recognized at least sometimes)
+  - Ezekiel (Works if pronounced `uh-zee-kee-el`)
+  - Nahum
+  - Philemon
 
 ## Development ##
 
