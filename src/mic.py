@@ -1,283 +1,110 @@
-#!/usr/bin/env python3
-
+""" Contains parsing and recording functions """
 import logging
-import os
-import queue
-import sounddevice as sd
-import vosk
-import sys
+import time
 
 import requests
-from utils import str2int
+import speech_recognition as sr
 
 import settings
 
 
+# this is called from the background thread
+def callback(recognizer, audio):
+    """ This is called each time a chunk of speech is finished being recorded """
+    # Set book titles
+    books = ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"]
+    # Get speech as list of words
+    try:
+        # For testing purposes, we're just using the default API key
+        # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
+        raw = recognizer.recognize_google(audio)
+        logging.debug(f"Raw recognized text: {raw}")
+        # Replace filler words
+        speech = raw.replace(
+            ":", " ").replace(
+            "chapter", "").replace(
+            "verse", "").replace(
+            "and", "").split()
 
-def cleanup_speech(speech):
-    """Replaces certain spoken words to improve recognition
-    ARGS:
-        speech: spoken words as list of one-word strings
-    RETURNS: new list of one word strings with replacements
-    """
-    # Cleanup mis-recognized book names
-    speech = speech.replace(
-        "axe ", "acts ").replace(
-        "zachariah ", "zechariah ").replace(
-        "malik i won ", "malachi one ").replace(
-        "philippines ", "philippians ").replace(
-        "collections ", "colossians ").replace(
-        "collisions ", "colossians ").replace(
-        "revelations ", "revelation ").replace(
-        "dude around me ", "deuteronomy ").replace(
-        "dude ", "jude ").replace(
-        "joe ", "joel ").replace(
-        "ecclesiastical ", "ecclesiastes ").replace(
-        "ecclesiastic ", "ecclesiastes ").replace(
-        "ecclesiasties ", "ecclesiastes ").replace(
-        "her back ", "habakkuk ").replace(
-        "have a cook ", "habakkuk ").replace(
-        "hi guy ", "haggai ").replace(
-        "her guy ", "haggai ").replace(
-        "how guy  ", "haggai ").replace(
-        "hey i ", "haggai ").replace(
-        "zephyr nine ", "zephaniah ").replace(
-        "there for naya ", "zephaniah ").replace(
-        "that for naya ", "zephaniah ").replace(
-        "the for naya ", "zephaniah ").replace(
-        "korean teams ", "corinthians").replace(
-        "clinton's ", "corinthians ").replace(
-        "corinthian ", "corinthians ").replace(
-        "relations ", "galatians ").replace(
-        "deletions ", "galatians ").replace(
-        "find them in ", "philemon ").replace(
-        "find them on ", "philemon ").replace(
-        "find lehman ", "philemon ").replace(
-        "find him in ", "philemon ")
-
-    # Cleanup mis-recognized numbers
-    speech = speech.replace(
-        "won", "one").replace(
-        "for", "four").replace(
-        "to", "two").replace(
-        "fourty", "four")
-
-    return speech
-
-
-def load_model():
-    """Load required inputs for speech recognition"""
-    model_name = "model"
-    if not os.path.exists(model_name):
-        print ("Please download a model for your language from https://alphacephei.com/vosk/models")
-        print ("and unpack as 'model' in the current folder.")
-
-    return vosk.Model(model_name)
-
-
-def parse_stream(recognizer, stream, books):
-    """Parse recognized text for Bible references
-    ARGS:
-        recognizer: the vosk recognizer
-        stream: stream of recognized text
-        books: list of books of the Bible to parse
-    """
-    # If recording is still active, skip parsing
-    if not recognizer.AcceptWaveform(stream.get()):
+    except sr.UnknownValueError:
+        logging.debug("No audio recognized")
         return
-    # If recording has finished a chunk, then parse
-    recognized_text = eval(recognizer.PartialResult())['partial']
-    logging.debug(f"Recognized text: {recognized_text}")
-    # Cleanup spoken text and split into list
-    words = cleanup_speech(recognized_text).split()
-    logging.debug(f"Clened up words: {words}")
-    recognizer.Result()
-    # Filler words to be ignored durring parsing
-    chapter_filler_words = ["chapter"]
-    verse_filler_words = ["verse", "and"]
-    # Cycle through words looking for book titles
+    except sr.RequestError as e:
+        logging.error("Could not request results from speech recognition api; {0}".format(e))
+        return
+    # Parse references
     index = 0
-    for word in words:
-        if ((word in books)
-            or (word == "song")
-            or (word == "first")
-            or (word == "second")
-            or (word == "third")
-        ):
-            # Consider the word to be a book title
+    for word in speech:
+        additional_index = 0
+        # Get full book name if starts with number
+        if word in ["1st", "2nd", "3rd"]:
+            index += 1
+            if word == "1st":
+                word = f"1 {speech[index]}"
+                additional_index = 1
+            elif word == "2nd":
+                word = f"2 {speech[index]}"
+                additional_index = 1
+            elif word == "3rd":
+                word = f"3 {speech[index]}"
+                additional_index = 1
+        # Get full book name for Song of Solomon since it's multiple words long
+        if word.lower() == "song":
+            index += 2
+            word = "Song of Solomon"
+        # Make sure book name exist sin book list
+        if not word in books:
+            index += 1
+            continue
+
+        # Parse reference
+        try:
             book = word
-            logging.debug(f"{book} recognized.")
-            # Default chapter to be 1 word after the book title
-            chap_index = 1
-            # Handle Song of Solomon differently since it is three words
-            if book == "song":
-                # Make sure entire book title was parsed
-                if not words[index+1:index+3] == ["of", "solomon"]:
-                    index += 1
-                    continue
-                book = "song of solomon"
-                chap_index = 3
-            # Handle books with 'first'/'second'/'third' in title differently
-            if book == "first" or book == "second" or book == "third":
-                # Adjust Book Title
-                if book == "first":
-                    book = f"1 {words[index+1]}"
-                    # remove the book from the text to prevent book of John from also showing
-                    words.remove(words[index+1])
-                elif book == "second":
-                    book = f"2 {words[index+1]}"
-                    # remove the book from the text to prevent book of John from also showing
-                    words.remove(words[index+1])
-                elif book == "third":
-                    book = f"3 {words[index+1]}"
-                    # remove the book from the text to prevent book of John from also showing
-                    words.remove(words[index+1])
-                # Verify parsed book exists
-                if not book in books:
-                    index += 1
-                    continue
-
-            # Get amount of numbers after Book is mentioned
-            chap_fillers = 0
-            verse_fillers = 0
-            ref_numbers = 0
-            number = 0
-            while number < 4 + chap_fillers + verse_fillers:
-                try:
-                    if words[index+chap_index+number] in chapter_filler_words:
-                        chap_fillers += 1
-                        number += 1
-                        continue
-                    elif words[index+chap_index+number] in verse_filler_words:
-                        verse_fillers += 1
-                        number += 1
-                        continue
-                    else:
-                        if str2int(words[index+chap_index+number]) != "":
-                            ref_numbers += 1
-                        number += 1
-                except:
-                    break
-            logging.debug(f"{ref_numbers} reference numbers recognized.")
-            # If only one number is referenced continue unless book has one chapter
-            if ref_numbers == 1:
-                # If book has only one chapter, then assume the number is a verse
-                try:
-                    if book in ["obadiah", "philemon", "jude", "2 john", "3 john"]:
-                        chapter = 1
-                        verse = str2int(words[index+chap_index])
-                    else:
-                        index += 1
-                        continue
-                except:
-                    index += 1
-                    continue
-            # If two numbers are referenced, assume first is chapter and
-            # second is verse unless first is a multiple of 10, then continue
-            elif ref_numbers == 2:
-                try:
-                    # If first word is twenty, check to see if second word is larger than 9, if so, use it as the verse
-                    if words[index+chap_index+chap_fillers].endswith("ty") and (verse_fillers > 0 or (str2int(words[index+chap_index+chap_fillers+1]) > 9)):
-                        chapter = str2int(words[index+chap_index+chap_fillers])
-                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers])
-                    elif words[index+chap_index+chap_fillers].endswith("ty") and verse_fillers == 0:
-                        index += 1
-                        continue
-                    else:
-                        chapter = str2int(words[index+chap_index+chap_fillers])
-                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers])
-                except:
-                    index += 1
-                    continue
-            # if three numbers are referenced, then determine if the chapter
-            # or verse contains two numbers
-            elif ref_numbers == 3:
-                try:
-                    if words[index+chap_index+chap_fillers].endswith("ty") and words[index+chap_index+chap_fillers+1].endswith("ty"):
-                        chapter = str2int(words[index+chap_index+chap_fillers])
-                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers])+str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])
-                    elif words[index+chap_index+chap_fillers].endswith("ty") and (not words[index+chap_index+chap_fillers+1].endswith("ty")):
-                        chapter = str2int(words[index+chap_index+chap_fillers])+str2int(words[index+chap_index+chap_fillers+1])
-                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])
-                    elif not(words[index+chap_index+chap_fillers].endswith("ty")) and (words[index+chap_index+chap_fillers+1].endswith("ty")):
-                        chapter = str2int(words[index+chap_index+chap_fillers])
-                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])+str2int(words[index+chap_index+chap_fillers+verse_fillers+1])
-                    else:
-                        chapter = str2int(words[index+chap_index+chap_fillers])+str2int(words[index+chap_index+chap_fillers+1])
-                        verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])
-                except:
-                    index += 1
-                    continue
-            elif ref_numbers == 4:
-                try:
-                    chapter = str2int(words[index+chap_index+chap_fillers])+str2int(words[index+chap_index+chap_fillers+1])
-                    verse = str2int(words[index+chap_index+chap_fillers+1+verse_fillers+1])+str2int(words[index+chap_index+chap_fillers+1+verse_fillers+2])
-                except:
-                    index += 1
-                    continue
+            chapter = speech[index + 1]
+            if len(speech) >= index + 3:
+                verse = speech[index + 2]
             else:
+                verse = ""
+            if not chapter.isdigit() and not verse.isdigit():
+                logging.debug(f"Parsed Chapter ({chapter}) and verse ({verse}) are not both digits")
                 index += 1
                 continue
-            if verse == "" or chapter == "" or book == "":
-                index += 1
-                continue
-            else:
-                api_url = f"https://bible-api.com/{book}+{chapter}:{verse}?translation={settings.TRANSLATION}"
-                logging.debug(f"Fetching url: {api_url}")
-            try:
-                text = requests.get(api_url).json()["text"]
-                display_text = f"{book.title()} {chapter}:{verse} \n {text}"
-                logging.debug(display_text)
-                print(display_text)
-            except:
-                error = f"Failed to fetch verse {book.capitalize()} {chapter}:{verse}?translation={settings.TRANSLATION} \n Maybe it doesn't exist?"
-                logging.error(error)
-                print(error)
+            elif chapter.isdigit() and not verse.isdigit() and (
+                book in ["Obadiah", "Philemon", "Jude", "2 John", "3 John"]
+            ):
+                verse = chapter
+                chapter = 1
 
-        index += 1
+        except IndexError:
+            logging.debug(f"Could not parse reference from: {speech[index:]}")
+            index += 1
+            continue
+
+        try:
+            api_url = f"https://bible-api.com/{book}+{chapter}:{verse}?translation={settings.TRANSLATION}"
+            logging.debug(f"Fetching url: {api_url}")
+            text = requests.get(api_url).json()["text"]
+            display_text = f"{book.title()} {chapter}:{verse} \n {text}"
+            logging.info(display_text)
+        except:
+            error = f"Failed to fetch {book.capitalize()} {chapter}:{verse} - Maybe it doesn't exist?"
+            logging.error(error)
+        index += 1 + additional_index
 
 def start():
-    stream = queue.Queue()
-
-    def callback(indata, frames, time, status):
-        """This is called (from a separate thread) for each audio block."""
-        if status:
-            print(status, file=sys.stderr)
-        stream.put(bytes(indata))
-
+    """ Start recognizing speech """
+    # Setup recognizer and change default settings.
+    r = sr.Recognizer()
+    # Change defaults using settings
+    r.non_speaking_duration = settings.NON_SPEAKING_DURATION
+    r.pause_threshold = settings.PAUSE_THRESHOLD
+    m = sr.Microphone()
+    with m as source:
+        r.adjust_for_ambient_noise(source)  # we only need to calibrate once, before we start listening
     try:
-        model = load_model()
-        # Use first device by default: soundfile expects an int, sounddevice provides a float:
-        samplerate = int(sd.query_devices(0, 'input')['default_samplerate'])
-        # Start Input
-        with sd.RawInputStream(samplerate=samplerate, blocksize = 8000, device=0, dtype='int16',
-                                channels=1, callback=callback):
-            print('#' * 80)
-            print('Press Ctrl+C to stop the recording')
-            print('#' * 80)
-            logging.debug("Recording starting...")
-            # Start speech recognition
-            start_recognition(model, samplerate, stream)
-
-    except KeyboardInterrupt:
-        print('\nDone')
-
+    # start listening in the background (note that we don't have to do this inside a `with` statement)
+    # stop_listening will be a function that when called will stop listening.
+        stop_listening = r.listen_in_background(m, callback)
+        while True: time.sleep(0.1)
     except Exception as e:
-        print(e)
-
-
-def start_recognition(model, samplerate, stream):
-    """Start speech recognition
-    ARGS:
-        model: vosk speech recognition model
-        samplerate: integer containing the sample rate
-        stream: the audio stream
-    """
-    # Setup speech recognizer
-    recognizer = vosk.KaldiRecognizer(model, samplerate)
-    # Define book names (used as triggers to start looking for chapters/verses)
-    books = ["genesis","exodus","leviticus","numbers","deuteronomy","joshua","judges","ruth","1 samuel","2 samuel","1 kings","2 kings","1 chronicles","2 chronicles","ezra","nehemiah","esther","job","psalms","proverbs","ecclesiastes","song of solomon","isaiah","jeremiah","lamentations","ezekiel","daniel","hosea","joel","amos","obadiah","jonah","micah","nahum","habakkuk","zephaniah","haggai","zechariah","malachi","matthew","mark","luke","john","acts","romans","1 corinthians","2 corinthians","galatians","ephesians","philippians","colossians","1 thessalonians","2 thessalonians","1 timothy","2 timothy","titus","philemon","hebrews","james","1 peter","2 peter","1 john","2 john","3 john","jude","revelation"]
-    logging.debug(f"Books of Bible: {books}")
-
-    while True:
-        parse_stream(recognizer, stream, books)
+        logging.error(e)

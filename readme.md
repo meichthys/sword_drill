@@ -8,22 +8,16 @@ Sword Drill is a speech to text application that listens for Bible references. W
 
 ### History ###
 
-This idea of this application was conceptualized prior to 2020, but the COVID pandemic made it more valuable since many churches removed pew Bibles in an attempt to reduce potential transmission of the virus. Although most people have their own Bibles, there are many places where personal Bibles are not very prevelant. Sword Drill can help with this by displaying spoken verses on a screen so all can see.
+This idea of this application was conceptualized prior to 2020, but the COVID pandemic made it more valuable since many churches removed pew Bibles in an attempt to reduce potential transmission of the virus. Although most people have their own Bibles, there are many places where personal Bibles are not very prevalent. Sword Drill can help with this by displaying spoken verses on a screen so all can see.
 
 ## Usage ##
 
 This application should work out of the box with the KJV version.
-To run, simply double click the executable. If you are promoted, allow the program to access your microphone.
+To run, simply double click the executable (coming soon). If you are promoted, allow the program to access your microphone.
 
 ### Limitations ###
 
-Currently the following situations are not handled:
-
-- Parsing of Chapters/Verses over 100 (only affects Psalms)
-- Some books are almost never correctly recognized (most are recognized at least sometimes)
-  - Ezekiel (Works if pronounced `uh-zee-kee-el`)
-  - Nahum
-  - Philemon
+Speech recognition isn't perfect, but most references should be recognized if they are spoken in a common way. There is a very brief period between recognized phrases where a word could be lost from the recording - and thus could cause a reference to be missed, but this should be very rare.
 
 ## Development ##
 
@@ -36,9 +30,9 @@ To get started developing:
 4. Enter the virtual environment by running `pipenv shell`
 5. Run the application by running `python ./src/main.py`
 
-### Voice Recognition Models ###
+### Voice Recognition Notes ###
 
-This application uses a smallest voice recognition model, but other voice recognition models that are compatible with [vosk](https://alphacephei.com/vosk/models) can be used (Note: Currently only English models are supported). To change the model, simply download the model you would like, extract it and save it in the `src` directory with the name of `model`.
+This application uses [SpeechRecognition](https://pypi.org/project/SpeechRecognition/) to handle recording and Google Cloud Speech API to parse the speech into text. This program then parses the references from the text and fetches the verse text from [Bible-API.com](https://bible-api.com/).
 
 ## License ##
 
