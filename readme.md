@@ -13,7 +13,7 @@ This idea of this application was conceptualized prior to 2020, but the COVID pa
 ## Usage ##
 
 This application should work out of the box with the KJV version.
-To run, simply double click the executable (coming soon). If you are promoted, allow the program to access your microphone.
+To run, simply double click the executable (coming soon). If you are prompted, allow the program to access your microphone.
 
 ### Limitations ###
 
