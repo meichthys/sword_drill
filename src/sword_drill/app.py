@@ -23,9 +23,7 @@ class SwordDrill(toga.App):
     def startup(self):
         self.q = Queue()
         setup_logging()
-        t1 = Thread(target = self.start)
-        t1.start()
-        t1.join()
+
         """
         Construct and show the Toga application.
 
@@ -39,26 +37,25 @@ class SwordDrill(toga.App):
         self.main_window = toga.MainWindow(title=self.formal_name)
         self.main_window.content = main_box
         self.main_window.show()
-        s = sched.scheduler(time.time, time.sleep)
-        s.enter(1,1,self.update)
-        s.run()
 
-    def update(self):
-        value = self.q.get()
-        self.text_box.value = value
-
+        t1 = Thread(target = self.start)
+        t1.start()
 
     # this is called from the background thread
     def callback(self, recognizer, audio):
         """ This is called each time a chunk of speech is finished being recorded """
+
         # Set book titles
         books = ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"]
         # Get speech as list of words
         try:
             # For testing purposes, we're just using the default API key
             # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
+            print("recognizing")
             raw = recognizer.recognize_google(audio)
+            print(raw)
             logging.debug(f"Raw recognized text: {raw}")
+
             # Replace filler words
             speech = raw.replace(
                 ":", " ").replace(
@@ -66,8 +63,8 @@ class SwordDrill(toga.App):
                 "verse", "").replace(
                 "and", "").split()
 
-        except sr.UnknownValueError:
-            logging.debug("No audio recognized")
+        except Exception as error:
+            logging.debug(f"No audio recognized: {error}")
             return
         except sr.RequestError as e:
             logging.error("Could not request results from speech recognition api; {0}".format(e))
@@ -139,12 +136,16 @@ class SwordDrill(toga.App):
         # Change defaults using settings
         r.non_speaking_duration = settings.NON_SPEAKING_DURATION
         r.pause_threshold = settings.PAUSE_THRESHOLD
-        with sr.Microphone() as source:
+        with sr.Microphone(device_index=4) as source:
             r.adjust_for_ambient_noise(source)  # we only need to calibrate once, before we start listening
         try:
         # start listening in the background (note that we don't have to do this inside a `with` statement)
         # stop_listening will be a function that when called will stop listening.
-            stop_recording = r.listen_in_background(source, self.callback)
+            print("starting to record")
+            t2 = Thread(target=r.listen_in_background, daemon=True, args=(source, self.callback))
+            t2.start()
+
+
         except Exception as e:
             logging.error(e)
 

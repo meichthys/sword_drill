@@ -6,7 +6,6 @@ name = "pypi"
 [packages]
 requests = "*"
 speechrecognition = "*"
-pyaudio = "*"
 pyproject-toml = "*"
 poetry = "*"
 briefcase = "*"
