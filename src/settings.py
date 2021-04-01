@@ -11,4 +11,3 @@ PAUSE_THRESHOLD = 0.25 # seconds of non-speaking audio before a phrase is consid
 
 # Bible Version to use from the `Identifiers` listed here: https://bible-api.com/
 TRANSLATION = "kjv"
-

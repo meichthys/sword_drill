@@ -2,7 +2,7 @@
 
 import logging
 
-from sword_drill import settings
+import settings
 
 def setup_logging():
     """ Sets up logging with various handlers """
