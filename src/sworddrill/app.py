@@ -1,45 +1,45 @@
-"""Contains main method and caller functions."""
+""" Run BeeWare Application"""
 import logging
+from queue import Queue
 import time
 
 import requests
 import speech_recognition as sr
 from threading import Thread
 
-import settings
+import toga
+from toga.style import Pack
+from toga.style.pack import COLUMN, ROW
 
-import kivy
-from kivy.lang import builder
-from utils import setup_logging
-from kivy.app import App
-from kivy.uix.label import Label
-from kivy.uix.gridlayout import GridLayout
-from kivy.clock import Clock
-from kivy.config import Config
+from src.sworddrill import settings
 
-kivy.require('2.0.0') # replace with your current kivy version !
+class SwordDrill(toga.App):
 
-Config.set('graphics', 'width', '300')
-Config.set('graphics', 'height', '200')
+    def startup(self):
+        """
+        Construct and show the Toga application.
 
-class SwordDrill(App):
-
-    def build(self):
-        return MainWindow()
-
-class MainWindow(GridLayout):
-    def __init__(self, **kwargs):
-        super(MainWindow, self).__init__(**kwargs)
-        self.width = 550
-        self.cols = 1
-        self.label = Label(text="Loading...", text_size=(500, None))
-        self.add_widget(self.label)
+        Usually, you would add your application to a main content box.
+        We then create a main window (with a name matching the app), and
+        show the main window.
+        """
+        logging.debug("Starting GUI")
+        main_box = toga.Box()
+        self.label = toga.Label(text = "Loading...")
+        main_box.add(self.label)
+        self.main_window = toga.MainWindow(title=self.formal_name)
+        self.main_window.content = main_box
+        self.main_window.show()
+        logging.debug("Starting thread to recognize audio...")
+        self.q = Queue()
         t1 = Thread(target=self.start)
         t1.start()
+
 
     # this is called from the background thread
     def callback(self, recognizer, audio):
         """ This is called each time a chunk of speech is finished being recorded """
+        logging.debug("Audio chunk sent for processing...")
         # Set book titles
         books = ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"]
         # Get speech as list of words
@@ -101,6 +101,7 @@ class MainWindow(GridLayout):
                 elif chapter.isdigit() and not verse.isdigit() and (
                     book in ["Obadiah", "Philemon", "Jude", "2 John", "3 John"]
                 ):
+                    logging.debug(f"Assuming chapter 1 for {book} since only one number spoken with book title.")
                     verse = chapter
                     chapter = 1
 
@@ -110,11 +111,12 @@ class MainWindow(GridLayout):
                 continue
 
             try:
-                api_url = f"https://bible-api.com/{book}+{chapter}:{verse}?translation={settings.TRANSLATION}"
+                api_url = f"https://bible-api.com/{book}+{chapter}:{verse}?translation=kjv"
                 logging.debug(f"Fetching url: {api_url}")
                 text = requests.get(api_url).json()["text"]
                 display_text = f"{book.title()} {chapter}:{verse} \n {text}"
                 self.label.text = display_text
+                self.label.refresh()
                 logging.info(display_text)
             except:
                 error = f"Failed to fetch {book.capitalize()} {chapter}:{verse} - Maybe it doesn't exist?"
@@ -128,18 +130,24 @@ class MainWindow(GridLayout):
         # Change defaults using settings
         r.non_speaking_duration = settings.NON_SPEAKING_DURATION
         r.pause_threshold = settings.PAUSE_THRESHOLD
-        m = sr.Microphone()
+        mic_num = settings.MIC_NUMBER
+        m = sr.Microphone(mic_num)
+        logging.debug(f"Recognized microphones: {m.list_microphone_names()}")
+        logging.info(f"Using Microphone: {m.list_microphone_names()[mic_num]}")
         with m as source:
+            logging.debug("Adjusting for ambient noise...")
             r.adjust_for_ambient_noise(source)  # we only need to calibrate once, before we start listening
         try:
         # start listening in the background (note that we don't have to do this inside a `with` statement)
         # stop_listening will be a function that when called will stop listening.
+            logging.debug("Starting to listen in background...")
             stop_listening = r.listen_in_background(m, self.callback)
             while True: time.sleep(0.1)
         except Exception as e:
             logging.error(e)
 
 
-if __name__ == '__main__':
-    SwordDrill().run()
-    setup_logging()
+
+def main():
+    logging.info("Starting SwordDrill...")
+    return SwordDrill()

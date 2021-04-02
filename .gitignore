@@ -9,8 +9,9 @@
 *.log
 
 
-
+#############
 ## BEEWARE ##
+#############
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

@@ -7,7 +7,7 @@ name = "pypi"
 requests = "*"
 speechrecognition = "*"
 pyaudio = "*"
-kivy = "*"
+briefcase = "*"
 
 [dev-packages]
 

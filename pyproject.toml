@@ -1,26 +1,26 @@
 [tool.briefcase]
 project_name = "Sword Drill"
-bundle = "com.homegrowntechie"
+bundle = "com.example"
 version = "0.0.1"
-url = "https://homegrowntechie.com/sword_drill"
-license = "MIT license"
-author = 'HomegrownTechie'
-author_email = "homegrowntechie@gmail.com"
+url = "https://example.com/sworddrill"
+license = "BSD license"
+author = 'Jane Developer'
+author_email = "jane@example.com"
 
-[tool.briefcase.app.sword_drill]
+[tool.briefcase.app.sworddrill]
 formal_name = "Sword Drill"
-description = "Display spoken Bible references."
-icon = "src/sword_drill/resources/sword_drill"
-sources = ['src/sword_drill']
+description = "My first application"
+icon = "src/sworddrill/resources/sworddrill"
+sources = ['src/sworddrill']
 requires = []
 
 
-[tool.briefcase.app.sword_drill.macOS]
+[tool.briefcase.app.sworddrill.macOS]
 requires = [
     'toga-cocoa>=0.3.0.dev20',
 ]
 
-[tool.briefcase.app.sword_drill.linux]
+[tool.briefcase.app.sworddrill.linux]
 requires = [
     'toga-gtk>=0.3.0.dev20',
 ]
@@ -32,18 +32,18 @@ system_requires = [
     'gir1.2-webkit-3.0',
 ]
 
-[tool.briefcase.app.sword_drill.windows]
+[tool.briefcase.app.sworddrill.windows]
 requires = [
     'toga-winforms>=0.3.0.dev20',
 ]
 
 # Mobile deployments
-[tool.briefcase.app.sword_drill.iOS]
+[tool.briefcase.app.sworddrill.iOS]
 requires = [
     'toga-iOS>=0.3.0.dev20',
 ]
 
-[tool.briefcase.app.sword_drill.android]
+[tool.briefcase.app.sworddrill.android]
 requires = [
     'toga-android>=0.3.0.dev20',
 ]
