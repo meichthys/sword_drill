@@ -18,8 +18,8 @@ class SwordDrill(App):
     """ Build App """
     kivy.require('2.0.0') # replace with your current kivy version !
 
-    Config.set('graphics', 'width', '300')
-    Config.set('graphics', 'height', '200')
+    Config.set('graphics', 'width', '550')
+    Config.set('graphics', 'height', '250')
     def build(self):
         return MainWindow()
 
@@ -28,8 +28,12 @@ class MainWindow(GridLayout):
         super(MainWindow, self).__init__(**kwargs)
         logging.debug("Setting up GUI...")
         self.width = 550
+        self.height = 250
         self.cols = 1
-        self.label = Label(text="Loading...", text_size=(500, None))
+        self.label = Label(
+            text="Loading...",
+            text_size=(500, None),
+            font_size='30sp',)
         self.add_widget(self.label)
         logging.debug("Setting up background listener...")
         t1 = Thread(target=self.start)

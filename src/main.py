@@ -3,7 +3,6 @@ import logging
 
 from app import SwordDrill
 from utils import setup_logging
-import settings
 
 
 if __name__ == '__main__':
