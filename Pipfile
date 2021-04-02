@@ -7,8 +7,8 @@ name = "pypi"
 requests = "*"
 speechrecognition = "*"
 pyaudio = "*"
-kivy = "*"
 pyinstaller = "*"
+pyqt5 = "*"
 
 [dev-packages]
 
