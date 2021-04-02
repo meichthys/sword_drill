@@ -18,8 +18,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         logging.debug("Setting up GUI...")
         self.setupUi(self)
         logging.debug("Setting up background listener...")
+        self.verse_count = 0
         t1 = Thread(target=self.start)
         t1.start()
+
 
     # this is called from the background thread
     def callback(self, recognizer, audio):
@@ -101,6 +103,8 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 display_text = f"{book.title()} {chapter}:{verse} \n {text}"
                 self.ui_label.setText(display_text)
                 logging.info(display_text)
+                self.verse_count += 1
+                self.statusbar.showMessage(f"Verse Count: {self.verse_count}")
             except:
                 error = f"Failed to fetch {book.capitalize()} {chapter}:{verse} - Maybe it doesn't exist?"
                 logging.error(error)

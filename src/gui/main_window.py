@@ -14,7 +14,7 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(500, 200)
+        MainWindow.resize(500, 253)
         MainWindow.setMaximumSize(QtCore.QSize(500, 500))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
@@ -26,6 +26,7 @@ class Ui_MainWindow(object):
         self.ui_label.setFont(font)
         self.ui_label.setTextFormat(QtCore.Qt.PlainText)
         self.ui_label.setAlignment(QtCore.Qt.AlignCenter)
+        self.ui_label.setWordWrap(True)
         self.ui_label.setObjectName("ui_label")
         self.verticalLayout.addWidget(self.ui_label)
         MainWindow.setCentralWidget(self.centralwidget)
