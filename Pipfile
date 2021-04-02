@@ -8,6 +8,7 @@ requests = "*"
 speechrecognition = "*"
 pyaudio = "*"
 kivy = "*"
+pyinstaller = "*"
 
 [dev-packages]
 
