@@ -1,6 +1,7 @@
 """ Run BeeWare Application"""
 import logging
 from queue import Queue
+import queue
 import time
 
 import requests
@@ -34,6 +35,20 @@ class SwordDrill(toga.App):
         self.q = Queue()
         t1 = Thread(target=self.start)
         t1.start()
+        self.add_background_task(self.update)
+
+    def update(self, app):
+        """ Update label """
+        while True:
+            try:
+                label_text = self.q.get_nowait()
+                print(label_text)
+            except queue.Empty:
+                print("queue empty")
+                pass
+            else:
+                self.label.text = label_text
+            yield 1
 
 
     # this is called from the background thread
@@ -115,8 +130,9 @@ class SwordDrill(toga.App):
                 logging.debug(f"Fetching url: {api_url}")
                 text = requests.get(api_url).json()["text"]
                 display_text = f"{book.title()} {chapter}:{verse} \n {text}"
-                self.label.text = display_text
-                self.label.refresh()
+                self.q.put(display_text)
+                # self.label.text = display_text
+                # self.label.refresh()
                 logging.info(display_text)
             except:
                 error = f"Failed to fetch {book.capitalize()} {chapter}:{verse} - Maybe it doesn't exist?"
