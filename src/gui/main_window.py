@@ -15,11 +15,16 @@ class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
         MainWindow.resize(500, 253)
-        MainWindow.setMaximumSize(QtCore.QSize(500, 500))
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.verticalLayout = QtWidgets.QVBoxLayout(self.centralwidget)
         self.verticalLayout.setObjectName("verticalLayout")
+        self.ui_mic_number = QtWidgets.QPlainTextEdit(self.centralwidget)
+        self.ui_mic_number.setObjectName("ui_mic_number")
+        self.verticalLayout.addWidget(self.ui_mic_number)
+        self.ui_start = QtWidgets.QPushButton(self.centralwidget)
+        self.ui_start.setObjectName("ui_start")
+        self.verticalLayout.addWidget(self.ui_start)
         self.ui_label = QtWidgets.QLabel(self.centralwidget)
         font = QtGui.QFont()
         font.setPointSize(28)
@@ -40,4 +45,5 @@ class Ui_MainWindow(object):
     def retranslateUi(self, MainWindow):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.ui_label.setText(_translate("MainWindow", "Loading..."))
+        self.ui_start.setText(_translate("MainWindow", "Start Recording"))
+        self.ui_label.setText(_translate("MainWindow", "Enter Microphone Number"))
