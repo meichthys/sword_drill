@@ -10,7 +10,7 @@ from threading import Thread
 
 import toga
 from toga.style import Pack
-from toga.style.pack import COLUMN, ROW
+from toga.style.pack import COLUMN, ROW, CENTER
 
 from src.sworddrill import settings
 
@@ -25,12 +25,19 @@ class SwordDrill(toga.App):
         show the main window.
         """
         logging.debug("Starting GUI")
-        main_box = toga.Box()
-        self.label = toga.Label(text = "Loading...")
-        main_box.add(self.label)
+        main_box = toga.Box(style=Pack(direction=COLUMN, width=500))
+        spacer_box_top = toga.Box(style=Pack(flex=1))
+        spacer_box_bottom = toga.Box(style=Pack(flex=1))
+        self.verse_text = toga.MultilineTextInput(
+            style=Pack(text_align=CENTER)
+        )
+        main_box.add(spacer_box_top)
+        main_box.add(self.verse_text)
+        main_box.add(spacer_box_bottom)
         self.main_window = toga.MainWindow(title=self.formal_name)
         self.main_window.content = main_box
         self.main_window.show()
+
         logging.debug("Starting thread to recognize audio...")
         self.q = Queue()
         t1 = Thread(target=self.start)
@@ -38,16 +45,15 @@ class SwordDrill(toga.App):
         self.add_background_task(self.update)
 
     def update(self, app):
-        """ Update label """
+        """ Update verse """
         while True:
             try:
-                label_text = self.q.get_nowait()
-                print(label_text)
+                verse_text = self.q.get_nowait()
             except queue.Empty:
                 print("queue empty")
                 pass
             else:
-                self.label.text = label_text
+                self.verse_text.value = verse_text
             yield 1
 
 
@@ -131,8 +137,6 @@ class SwordDrill(toga.App):
                 text = requests.get(api_url).json()["text"]
                 display_text = f"{book.title()} {chapter}:{verse} \n {text}"
                 self.q.put(display_text)
-                # self.label.text = display_text
-                # self.label.refresh()
                 logging.info(display_text)
             except:
                 error = f"Failed to fetch {book.capitalize()} {chapter}:{verse} - Maybe it doesn't exist?"
