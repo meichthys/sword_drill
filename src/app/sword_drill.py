@@ -25,29 +25,42 @@ class MainWindow(QMainWindow, Ui_MainWindow):
     @pyqtSlot()
     def start_recording_thread(self):
         """ Start recording thread """
-        mic = int(self.ui_mic_number.toPlainText())
-        t1 = Thread(target=self.start, args=[mic])
-        t1.start()
-        self.statusbar.hide()
-        self.ui_mic_number.hide()
-        self.ui_start.hide()
-        self.ui_label.setText("Listening...")
+        try:
+            mic = int(self.ui_mic_number.toPlainText())
+            t1 = Thread(target=self.start, args=[mic])
+            t1.start()
+            self.statusbar.hide()
+            self.ui_mic_number.hide()
+            self.ui_start.hide()
+            self.ui_label.setText("Listening...")
+        except Exception as error:
+            logging.error(f"Failed to start recording in background thread: {error}")
 
     def get_microphones(self):
         """ List microphones """
-        m = sr.Microphone()
-        logging.info(f"Recognized microphones: {m.list_microphone_names()}")
-        mics = str([mic for mic in enumerate(m.list_microphone_names())])
-        self.statusbar.showMessage(f"Choose Mic: {mics}")
+        try:
+            m = sr.Microphone()
+            logging.info(f"Recognized microphones: {m.list_microphone_names()}")
+            mics = str([mic for mic in enumerate(m.list_microphone_names())])
+            self.statusbar.showMessage(f"Choose Mic: {mics}")
+        except Exception as error:
+            logging.error(f"Failed to get list of microphones: {error}")
 
-    # this is called from the background thread
-    def callback(self, recognizer, audio):
-        """ This is called each time a chunk of speech is finished being recorded """
+
+    def process_audio(self, recognizer, audio):
+        """ This is called each time a chunk of speech is finished being recorded
+            in the background thread.
+        ARGS:
+            recognizer: speech_recognition recognizer object
+            audio: recognized audio
+
+        """
         logging.debug("Audio chunk sent for processing...")
         # Set book titles
         books = ["Genesis","Exodus","Leviticus","Numbers","Deuteronomy","Joshua","Judges","Ruth","1 Samuel","2 Samuel","1 Kings","2 Kings","1 Chronicles","2 Chronicles","Ezra","Nehemiah","Esther","Job","Psalms","Proverbs","Ecclesiastes","Song Of Solomon","Isaiah","Jeremiah","Lamentations","Ezekiel","Daniel","Hosea","Joel","Amos","Obadiah","Jonah","Micah","Nahum","Habakkuk","Zephaniah","Haggai","Zechariah","Malachi","Matthew","Mark","Luke","John","Acts","Romans","1 Corinthians","2 Corinthians","Galatians","Ephesians","Philippians","Colossians","1 Thessalonians","2 Thessalonians","1 Timothy","2 Timothy","Titus","Philemon","Hebrews","James","1 Peter","2 Peter","1 John","2 John","3 John","Jude","Revelation"]
-        # Get speech as list of words
+
         try:
+            # Get raw speech as list of words
             # For testing purposes, we're just using the default API key
             # to use another API key, use `r.recognize_google(audio, key="GOOGLE_SPEECH_RECOGNITION_API_KEY")`
             raw = recognizer.recognize_google(audio)
@@ -61,40 +74,38 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 "-", " ").replace( # replace Psalm with Psalms
                 "Psalm", "Psalms"
                 ).split() # Sometimes chapter and verse are separated by dashes in recognizer response
-
-        except sr.UnknownValueError:
-            logging.debug("No audio recognized")
+        except sr.UnknownValueError as error:
+            logging.debug(f"No audio recognized: {error}")
             return
-        except sr.RequestError as e:
-            logging.error("Could not request results from speech recognition api; {0}".format(e))
+        except sr.RequestError as error:
+            logging.error("Could not request results from speech recognition api; {0}".format(error))
             return
         # Parse references
-        index = 0
-        for word in speech:
-            additional_index = 0
-            # Get full book name if starts with number
-            if word in ["1st", "2nd", "3rd"]:
-                index += 1
-                if word == "1st":
-                    word = f"1 {speech[index]}"
-                    additional_index = 1
-                elif word == "2nd":
-                    word = f"2 {speech[index]}"
-                    additional_index = 1
-                elif word == "3rd":
-                    word = f"3 {speech[index]}"
-                    additional_index = 1
-            # Get full book name for Song of Solomon since it's multiple words long
-            if word.lower() == "song":
-                index += 2
-                word = "Song Of Solomon"
-            # Make sure book name exist sin book list
-            if not word.title() in books:
-                index += 1
-                continue
+        try:
+            index = 0
+            for word in speech:
+                additional_index = 0
+                # Get full book name if starts with number
+                if word in ["1st", "2nd", "3rd"]:
+                    index += 1
+                    if word == "1st":
+                        word = f"1 {speech[index]}"
+                        additional_index = 1
+                    elif word == "2nd":
+                        word = f"2 {speech[index]}"
+                        additional_index = 1
+                    elif word == "3rd":
+                        word = f"3 {speech[index]}"
+                        additional_index = 1
+                # Get full book name for Song of Solomon since it's multiple words long
+                if word.lower() == "song":
+                    index += 2
+                    word = "Song Of Solomon"
+                # Make sure book name exist sin book list
+                if not word.title() in books:
+                    index += 1
+                    continue
 
-            # Parse reference
-            try:
                 book = word
                 chapter = speech[index + 1]
                 if len(speech) >= index + 3:
@@ -110,43 +121,44 @@ class MainWindow(QMainWindow, Ui_MainWindow):
                 ):
                     verse = chapter
                     chapter = 1
+            logging.debug(f"Recognized Bible reference: {book} {chapter}:{verse}")
+        except Exception as error:
+            logging.debug(f"Could not parse reference from: {speech[index:]}: {error}")
+            index += 1
+            return
 
-            except IndexError:
-                logging.debug(f"Could not parse reference from: {speech[index:]}")
-                index += 1
-                continue
+        try:
+            api_url = f"https://bible-api.com/{book}+{chapter}:{verse}?translation={settings.TRANSLATION}"
+            logging.debug(f"Fetching url: {api_url}")
+            text = requests.get(api_url).json()["text"]
+            text = text.replace("\n", " ") # remove new lines to cleanup Bible-API text where source xml file contains a 'transChange' tag (https://raw.githubusercontent.com/seven1m/open-bibles/master/eng-kjv.osis.xml)
+            display_text = f"{book.title()} {chapter}:{verse} \n {text}"
+            self.ui_label.setText(display_text.replace(
+                ", ", ",  ").replace( # PyQt removes space after commas
+                ". ", ".  ") # PyQt removes space after period
+            )
+            logging.info(display_text)
+        except Exception as error:
+            error = f"Failed to fetch {book.capitalize()} {chapter}:{verse} : {error}"
+            logging.error(error)
+        index += 1 + additional_index
 
-            try:
-                api_url = f"https://bible-api.com/{book}+{chapter}:{verse}?translation={settings.TRANSLATION}"
-                logging.debug(f"Fetching url: {api_url}")
-                text = requests.get(api_url).json()["text"]
-                text = text.replace("\n", " ") # remove new lines to cleanup Bible-API text where source xml file contains a 'transChange' tag (https://raw.githubusercontent.com/seven1m/open-bibles/master/eng-kjv.osis.xml)
-                display_text = f"{book.title()} {chapter}:{verse} \n {text}"
-                self.ui_label.setText(display_text.replace(
-                    ", ", ",  ").replace( # PyQt removes space after commas
-                    ". ", ".  ") # PyQt removes space after period
-                )
-                logging.info(display_text)
-            except:
-                error = f"Failed to fetch {book.capitalize()} {chapter}:{verse} - Maybe it doesn't exist?"
-                logging.error(error)
-            index += 1 + additional_index
 
     def start(self, microphone_number):
-        """ Start recognizing speech """
-        # Setup recognizer and change default settings.
-        r = sr.Recognizer()
-        # Change defaults using settings
-        r.non_speaking_duration = settings.NON_SPEAKING_DURATION
-        r.pause_threshold = settings.PAUSE_THRESHOLD
-        m = sr.Microphone(device_index=microphone_number)
-        logging.info(f"Using microphone: {m.list_microphone_names()[microphone_number]}")
-        with m as source:
-            logging.debug("Adjusting for ambient noise...")
-            r.adjust_for_ambient_noise(source)  # we only need to calibrate once, before we start listening
+        """ Start recognizing speech
+        ARGS:
+            microphone_number (int): the index of the microphone to use
+                                     (index from microphone.list_microphone_names)
+        """
         try:
-        # start listening in the background (note that we don't have to do this inside a `with` statement)
-        # stop_listening will be a function that when called will stop listening.
-            self.stop_listening = r.listen_in_background(m, self.callback)
-        except Exception as e:
-            logging.error(e)
+            recognizer = sr.Recognizer()
+            mic = sr.Microphone(device_index=microphone_number)
+            logging.info(f"Using microphone: {mic.list_microphone_names()[microphone_number]}")
+            with mic as source:
+                logging.debug("Adjusting for ambient noise...")
+                recognizer.adjust_for_ambient_noise(source)
+            logging.debug("Listening in background...")
+            # stop_listening is a function that when called will stop listening.
+            self.stop_listening = recognizer.listen_in_background(mic, self.process_audio)
+        except Exception as error:
+            logging.error(error)
