@@ -4,6 +4,8 @@
 
 ## Overview ##
 
+⚠ This project is under heavy development - large changes are expected to the codebase until v1.0.0 is released. ⚠
+
 Sword Drill is a speech to text application that listens for Bible references. When it parses a valid Bible Book/Chapter/Verse reference, it will display it on the screen.
 
 ### History ###
