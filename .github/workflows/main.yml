@@ -37,5 +37,11 @@ jobs:
           pypi_index_url: # optional, default is https://pypi.python.org/simple
           # Specify a file path for .spec file
           spec: # optional, default is 
+          
+      
+      - uses: actions/upload-artifact@v2
+        with:
+          name: SwordDrill.exe
+          path: dist/windows
 
 
