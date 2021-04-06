@@ -19,12 +19,14 @@ jobs:
             BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
                           brew install portaudio &&
                           brew install pipenv &&
+                          python -m venv .venv &&
                           pipenv install &&
                           pip install pyinstaller &&
                           source .venv/bin/activate &&
                           pyinstaller -F -w -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
-                          zip -r9 SwordDrill.zip SwordDrill.app/
+                          zip -r9 SwordDrill.zip SwordDrill.app &&
+                          rm SwordDrill.app
 
           - os: windows-latest
             TARGET: windows
@@ -37,7 +39,8 @@ jobs:
                           pipenv install &&
                           pyinstaller -F -w -n SwordDrill.exe -i icon.ico src/main.py &&
                           cd dist &&
-                          Compress-Archive -Path SwordDrill.exe -DestinationPath Windows.zip
+                          Compress-Archive -Path SwordDrill.exe -DestinationPath Windows.zip &&
+                          rm SwordDrill.exe
 
     steps:
       # Checkout Source
