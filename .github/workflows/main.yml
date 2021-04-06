@@ -47,13 +47,6 @@ jobs:
       - name: Build Executables
         run: ${{ matrix.BUILD_COMMAND }}
 
-      # Save Artifact
-      - name: Save Artifact
-        uses: actions/upload-artifact@v2
-        with:
-          name: SwordDrill
-          path: dist/
-
       # Publish Release
       - name: Create Release
         uses: svenstaro/upload-release-action@2.2.1
