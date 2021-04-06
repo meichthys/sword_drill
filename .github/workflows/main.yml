@@ -16,8 +16,8 @@ jobs:
         include:
           - os: macos-latest
             TARGET: macos
-            BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
-                          brew update && brew install portaudio &&
+            BUILD_COMMAND: git clone https://github.com/PortAudio/portaudio.git &&
+                          portaudio/configure && make &&
                           python -m venv .venv &&
                           source .venv/bin/activate &&
                           pip install pipenv &&
@@ -29,7 +29,7 @@ jobs:
           - os: windows-latest
             TARGET: windows
             BUILD_COMMAND: python -m venv .venv &&
-                          ./venv/Scripts/activate &&
+                          .venv/Scripts/activate &&
                           pyinstaller -F -w -n SwordDrill -i icon.ico main.py
 
     steps:
