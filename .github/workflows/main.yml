@@ -2,42 +2,52 @@ name: Release:Windows
 
 on:
   push:
-    tags:
-      - 'v*.*.0'
+    # tags:
+    #   - 'v*.*.0'
 
   workflow_dispatch:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/')
+  release:
+    name: Create Release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            TARGET: macos
+            BUILD_COMMAND: pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
+                        cd dist/ &&
+                        zip -r9 SwordDrill SwordDrill.app/
+
+          - os: windows-latest
+            TARGET: windows
+            BUILD_COMMAND: pyinstaller -F -w -n SwordDrill -i icon.ico main.py
+
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v2
+      - uses: action/checkout@v2
 
-      # Build Windows Executable
-      - name: PyInstaller Windows
-        uses: JackMcKew/pyinstaller-action-windows@v0.1.2
+      # Install pipenv dependencies
+      - name: Install Dependecies
+        uses: VaultVulp/action-pipenv@v2.0.1
         with:
-          path: src
+          command: install -d
 
-      # Build Linux Executable
-      - name: PyInstaller Linux
-        uses: JackMcKew/pyinstaller-action-linux@main
-        with:
-          path: src
+      # Build Executables
+      - name: Build Executables
+        run: ${{ matrix.BUILD_COMMAND }}
 
-      # Create Artifact
+      # Save Artifact
       - name: Save Artifact
         uses: actions/upload-artifact@v2
         with:
           name: SwordDrill
-          path: src/dist/windows
+          path: dist/
 
       # Publish Release
       - name: Release
         uses: fnkr/github-action-ghr@v1
         env:
-          GHR_PATH: src/dist/windows/
+          GHR_PATH: dist/
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
