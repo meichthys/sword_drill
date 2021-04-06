@@ -16,7 +16,11 @@ jobs:
         include:
           - os: macos-latest
             TARGET: macos
-            BUILD_COMMAND: pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
+            BUILD_COMMAND: python -m venv .venv &&
+                        source .venv/bin/activate &&
+                        pip install pipenv &&
+                        pipenv install && pipenv shell &&
+                        pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
                         cd dist/ &&
                         zip -r9 SwordDrill SwordDrill.app/
 
@@ -25,13 +29,14 @@ jobs:
             BUILD_COMMAND: pyinstaller -F -w -n SwordDrill -i icon.ico main.py
 
     steps:
+      # Checkout Source
       - uses: actions/checkout@v2
 
-      # Install pipenv dependencies
-      - name: Install Dependecies
-        uses: VaultVulp/action-pipenv@v2.0.1
+      # Install Python
+      - uses: actions/setup-python@v2
         with:
-          command: install -d
+          python-version: '3.x' # Version range or exact version of a Python version to use
+          architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
 
       # Build Executables
       - name: Build Executables
