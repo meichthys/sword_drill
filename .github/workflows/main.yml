@@ -30,6 +30,8 @@ jobs:
             TARGET: windows
             BUILD_COMMAND: python -m venv .venv &&
                           .venv/Scripts/activate &&
+                          pip install pipenv &&
+                          pipenv install && pipenv shell &&
                           pyinstaller -F -w -n SwordDrill -i icon.ico main.py
 
     steps:
