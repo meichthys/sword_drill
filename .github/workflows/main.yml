@@ -21,6 +21,7 @@ jobs:
                           brew install pipenv &&
                           pipenv install &&
                           pip install pyinstaller &&
+                          source .venv/bin/activate &&
                           pyinstaller -F -w -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
                           zip -r9 SwordDrill.zip SwordDrill.app/
@@ -31,8 +32,9 @@ jobs:
                           .venv/Scripts/activate &&
                           pip install pipwin &&
                           pipwin install pyaudio &&
+                          pip install pyinstaller &&
                           pip install pipenv &&
-                          pipenv install && pipenv shell &&
+                          pipenv install &&
                           pyinstaller -F -w -n SwordDrill.exe -i icon.ico main.py &&
                           cd dist &&
                           Compress-Archive -Path SwordDrill.exe -DestinationPath Windows.zip
