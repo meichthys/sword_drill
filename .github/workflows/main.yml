@@ -20,7 +20,7 @@ jobs:
                           brew install portaudio &&
                           brew install pipenv &&
                           pipenv install &&
-                          pipenv shell &&
+                          pip install pyinstaller &&
                           pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
                           cd dist/ &&
                           zip -r9 SwordDrill SwordDrill.app/
