@@ -1,4 +1,4 @@
-name: Release:Windows
+name: Release
 
 on:
 #   push:
@@ -21,17 +21,17 @@ jobs:
                           brew install pipenv &&
                           pipenv install &&
                           pip install pyinstaller &&
-                          pyinstaller -F -w -n SwordDrill -i icon.ico src/main.py &&
+                          pyinstaller -F -w -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
-                          zip -r9 SwordDrill SwordDrill.app/
+                          zip -r9 SwordDrill.zip SwordDrill.app/
 
-#           - os: windows-latest
-#             TARGET: windows
-#             BUILD_COMMAND: python -m venv .venv &&
-#                           .venv/Scripts/activate &&
-#                           pip install pipenv &&
-#                           pipenv install && pipenv shell &&
-#                           pyinstaller -F -w -n SwordDrill -i icon.ico main.py
+          - os: windows-latest
+            TARGET: windows
+            BUILD_COMMAND: python -m venv .venv &&
+                          .venv/Scripts/activate &&
+                          pip install pipenv &&
+                          pipenv install && pipenv shell &&
+                          pyinstaller -F -w -n SwordDrill -i icon.ico main.py
 
     steps:
       # Checkout Source
