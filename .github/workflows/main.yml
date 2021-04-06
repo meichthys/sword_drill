@@ -29,9 +29,12 @@ jobs:
             TARGET: windows
             BUILD_COMMAND: python -m venv .venv &&
                           .venv/Scripts/activate &&
+                          pip install pipwin &&
                           pip install pipenv &&
                           pipenv install && pipenv shell &&
-                          pyinstaller -F -w -n SwordDrill -i icon.ico main.py
+                          pyinstaller -F -w -n SwordDrill.exe -i icon.ico main.py &&
+                          cd dist &&
+                          Compress-Archive -Path SwordDrill.exe -DestinationPath Windows.zip
 
     steps:
       # Checkout Source
