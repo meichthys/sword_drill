@@ -18,10 +18,9 @@ jobs:
             TARGET: macos
             BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
                           brew install portaudio &&
-                          python -m venv .venv &&
-                          source .venv/bin/activate &&
                           pip install pipenv &&
-                          pipenv install && pipenv shell &&
+                          pipenv install &&
+                          pipenv shell &&
                           pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
                           cd dist/ &&
                           zip -r9 SwordDrill SwordDrill.app/
