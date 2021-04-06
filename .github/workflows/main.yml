@@ -5,9 +5,8 @@ name: Release:Windows
 on:
   # Triggers the workflow on push or pull request events but only for the main branch
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    tags:
+      - 'v*.*.0'
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
