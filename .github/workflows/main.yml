@@ -1,9 +1,9 @@
 name: Release:Windows
 
 on:
-  push:
-    # tags:
-    #   - 'v*.*.0'
+#   push:
+#     # tags:
+#     #   - 'v*.*.0'
 
   workflow_dispatch:
 
@@ -16,8 +16,8 @@ jobs:
         include:
           - os: macos-latest
             TARGET: macos
-            BUILD_COMMAND: git clone https://github.com/PortAudio/portaudio.git &&
-                          portaudio/configure && make &&
+            BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
+                          brew install portaudio &&
                           python -m venv .venv &&
                           source .venv/bin/activate &&
                           pip install pipenv &&
@@ -26,13 +26,13 @@ jobs:
                           cd dist/ &&
                           zip -r9 SwordDrill SwordDrill.app/
 
-          - os: windows-latest
-            TARGET: windows
-            BUILD_COMMAND: python -m venv .venv &&
-                          .venv/Scripts/activate &&
-                          pip install pipenv &&
-                          pipenv install && pipenv shell &&
-                          pyinstaller -F -w -n SwordDrill -i icon.ico main.py
+#           - os: windows-latest
+#             TARGET: windows
+#             BUILD_COMMAND: python -m venv .venv &&
+#                           .venv/Scripts/activate &&
+#                           pip install pipenv &&
+#                           pipenv install && pipenv shell &&
+#                           pyinstaller -F -w -n SwordDrill -i icon.ico main.py
 
     steps:
       # Checkout Source
@@ -43,6 +43,10 @@ jobs:
         with:
           python-version: '3.x' # Version range or exact version of a Python version to use
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
+
+      - name: Homebrew (Required for installing PortAudio)
+        uses: artemnovichkov/action-homebrew@0.1.0
+        
 
       # Build Executables
       - name: Build Executables
