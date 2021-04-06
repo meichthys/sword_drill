@@ -18,7 +18,7 @@ jobs:
   build:
     # The type of runner that the job will run on
     runs-on: ubuntu-latest
-
+    if: startsWith(github.ref, 'refs/tags/')
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
@@ -38,7 +38,7 @@ jobs:
           # Specify a file path for .spec file
           spec: # optional, default is
 
-      - name: Save Arifact
+      - name: Save Artifact
         uses: actions/upload-artifact@v2
         with:
           name: SwordDrill
@@ -46,7 +46,6 @@ jobs:
 
       - name: Release
         uses: fnkr/github-action-ghr@v1
-        if: startsWith(github.ref, 'refs/tags/')
         env:
           GHR_PATH: src/dist/windows/
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
