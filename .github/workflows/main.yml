@@ -21,7 +21,7 @@ jobs:
                           brew install pipenv &&
                           pipenv install &&
                           pip install pyinstaller &&
-                          pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
+                          pyinstaller -F -w -n SwordDrill -i icon.ico src/main.py &&
                           cd dist/ &&
                           zip -r9 SwordDrill SwordDrill.app/
 
