@@ -44,10 +44,6 @@ jobs:
           python-version: '3.x' # Version range or exact version of a Python version to use
           architecture: 'x64' # optional x64 or x86. Defaults to x64 if not specified
 
-      - name: Homebrew (Required for installing PortAudio)
-        uses: artemnovichkov/action-homebrew@0.1.0
-        
-
       # Build Executables
       - name: Build Executables
         run: ${{ matrix.BUILD_COMMAND }}
