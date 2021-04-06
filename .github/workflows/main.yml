@@ -35,7 +35,7 @@ jobs:
                           pip install pyinstaller &&
                           pip install pipenv &&
                           pipenv install &&
-                          pyinstaller -F -w -n SwordDrill.exe -i icon.ico main.py &&
+                          pyinstaller -F -w -n SwordDrill.exe -i icon.ico src/main.py &&
                           cd dist &&
                           Compress-Archive -Path SwordDrill.exe -DestinationPath Windows.zip
 
