@@ -16,17 +16,21 @@ jobs:
         include:
           - os: macos-latest
             TARGET: macos
-            BUILD_COMMAND: python -m venv .venv &&
-                        source .venv/bin/activate &&
-                        pip install pipenv &&
-                        pipenv install && pipenv shell &&
-                        pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
-                        cd dist/ &&
-                        zip -r9 SwordDrill SwordDrill.app/
+            BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
+                          brew update && brew install portaudio &&
+                          python -m venv .venv &&
+                          source .venv/bin/activate &&
+                          pip install pipenv &&
+                          pipenv install && pipenv shell &&
+                          pyinstaller -F -w -n SwordDrill -i icon.ico main.py &&
+                          cd dist/ &&
+                          zip -r9 SwordDrill SwordDrill.app/
 
           - os: windows-latest
             TARGET: windows
-            BUILD_COMMAND: pyinstaller -F -w -n SwordDrill -i icon.ico main.py
+            BUILD_COMMAND: python -m venv .venv &&
+                          ./venv/Scripts/activate &&
+                          pyinstaller -F -w -n SwordDrill -i icon.ico main.py
 
     steps:
       # Checkout Source
