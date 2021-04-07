@@ -60,6 +60,6 @@ jobs:
       - name: Create Release
         uses: svenstaro/upload-release-action@2.2.1
         with:
-          file: ${{ matrix.file_name }}
+          file: dist/${{ matrix.file_name }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           tag: ${{ github.ref }}
