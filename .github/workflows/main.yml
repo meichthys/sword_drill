@@ -16,7 +16,6 @@ jobs:
         include:
           - os: macos-latest
             file_name: SwordDrill-MacOS.tar.gz
-            TARGET: macos
             BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
                           brew install portaudio &&
                           brew install pipenv &&
@@ -31,7 +30,6 @@ jobs:
 
           - os: windows-latest
             file_name: SwordDrill-Windows.zip
-            TARGET: windows
             BUILD_COMMAND: python -m venv .venv &&
                           .venv/Scripts/activate &&
                           pip install pipwin &&
@@ -64,5 +62,4 @@ jobs:
         with:
           file: ${{ matrix.file_name }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ matrix.artifact_name }}
           tag: ${{ github.ref }}
