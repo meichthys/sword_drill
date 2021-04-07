@@ -15,8 +15,7 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            asset_name: SwordDrill-MacOS.tar.gz
-            artifact_name: SwordDrill.app
+            file_name: SwordDrill-MacOS.tar.gz
             TARGET: macos
             BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
                           brew install portaudio &&
@@ -31,8 +30,7 @@ jobs:
                           rm SwordDrill.app
 
           - os: windows-latest
-            asset_name: SwordDrill-Windows.zip
-            artifact_name: SwordDrill.exe
+            file_name: SwordDrill-Windows.zip
             TARGET: windows
             BUILD_COMMAND: python -m venv .venv &&
                           .venv/Scripts/activate &&
@@ -64,7 +62,7 @@ jobs:
       - name: Create Release
         uses: svenstaro/upload-release-action@2.2.1
         with:
-          asset_name: ${{ matrix.asset_name }}
+          file: ${{ matrix.file_name }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: ${{ matrix.artifact_name }}
           tag: ${{ github.ref }}
