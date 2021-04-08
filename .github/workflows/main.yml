@@ -28,19 +28,18 @@ jobs:
                           tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app/ &&
                           rm SwordDrill.app
 
-          - os: windows-latest
-            file_name: SwordDrill-Windows.zip
-            BUILD_COMMAND: python -m venv .venv &&
-                          .venv/Scripts/activate &&
-                          pip install pipwin &&
-                          pipwin install pyaudio &&
-                          pip install pyinstaller &&
-                          pip install pipenv &&
-                          pipenv install &&
-                          pyinstaller -D -w -n SwordDrill.exe -i icon.ico src/main.py &&
-                          cd dist &&
-                          Compress-Archive -Path SwordDrill.exe -DestinationPath SwordDrill-Windows.zip &&
-                          rm SwordDrill.exe
+#          - os: windows-latest
+#            file_name: SwordDrill-Windows.zip
+#            BUILD_COMMAND: python -m venv .venv &&
+#                          .venv/Scripts/activate &&
+#                          pip install pipwin &&
+#                          pipwin install pyaudio &&
+#                          pip install pyinstaller &&
+#                          pip install pipenv &&
+#                          pipenv install &&
+#                          pyinstaller -D -w -n SwordDrill.exe -i icon.ico src/main.py &&
+#                          cd dist &&
+#                          rm SwordDrill.exe
 
     steps:
       # Checkout Source
