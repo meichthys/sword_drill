@@ -23,7 +23,7 @@ jobs:
                           pipenv install &&
                           pip install pyinstaller &&
                           source .venv/bin/activate &&
-                          pyinstaller -F -w -n SwordDrill.app -i icon.ico src/main.py &&
+                          pyinstaller -D -w -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
                           tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app/ &&
                           rm SwordDrill.app
@@ -37,7 +37,7 @@ jobs:
                           pip install pyinstaller &&
                           pip install pipenv &&
                           pipenv install &&
-                          pyinstaller -F -w -n SwordDrill.exe -i icon.ico src/main.py &&
+                          pyinstaller -D -w -n SwordDrill.exe -i icon.ico src/main.py &&
                           cd dist &&
                           Compress-Archive -Path SwordDrill.exe -DestinationPath SwordDrill-Windows.zip &&
                           rm SwordDrill.exe
