@@ -62,4 +62,4 @@ jobs:
         with:
           file: dist/${{ matrix.file_name }}
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          tag: ${{ github.ref }}
+          tag: "Pre-Release"
