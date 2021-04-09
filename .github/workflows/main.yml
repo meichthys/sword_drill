@@ -26,7 +26,7 @@ jobs:
                           pyinstaller -D -w -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
                           tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app/ &&
-                          rm SwordDrill.app
+                          # rm SwordDrill.app
 
 #          - os: windows-latest
 #            file_name: SwordDrill-Windows.zip
