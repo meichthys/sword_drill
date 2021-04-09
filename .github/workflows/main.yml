@@ -25,7 +25,7 @@ jobs:
                           source .venv/bin/activate &&
                           pyinstaller -D -w -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
-                          tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app/ &&
+                          tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app
                           # rm SwordDrill.app
 
 #          - os: windows-latest
