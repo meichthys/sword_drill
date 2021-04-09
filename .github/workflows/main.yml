@@ -23,7 +23,7 @@ jobs:
                           pipenv install &&
                           pip install pyinstaller &&
                           source .venv/bin/activate &&
-                          pyinstaller -D -w -n SwordDrill.app -i icon.ico src/main.py &&
+                          pyinstaller -F -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
                           tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app
                           # rm SwordDrill.app
