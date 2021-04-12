@@ -8,7 +8,7 @@ requests = "*"
 speechrecognition = "*"
 pyaudio = "*"
 pyinstaller = "*"
-pyqt5 = "*"
+pyqt5 = "==5.14.2"
 
 [dev-packages]
 
