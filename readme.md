@@ -1,4 +1,4 @@
-![Discord](https://img.shields.io/discord/830949730708226070?label=Discord&style=for-the-badge)
+![](https://discord.gg/qUWbux95p4)
 
 # Sword Drill #
 
