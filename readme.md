@@ -1,3 +1,5 @@
+![Discord](https://img.shields.io/discord/830949730708226070?label=Discord&style=for-the-badge)
+
 # Sword Drill #
 
 ![Sword Drill Logo](logo.png "Sword-Drill Logo")
