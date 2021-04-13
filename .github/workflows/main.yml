@@ -20,7 +20,7 @@ jobs:
                           brew install portaudio &&
                           brew install pipenv &&
                           python -m venv .venv &&
-                          pipenv install &&
+                          pipenv install --skip-lock &&
                           source .venv/bin/activate &&
                           pyinstaller -F -n SwordDrill.app -i icon.ico src/main.py &&
                           cd dist/ &&
@@ -33,7 +33,7 @@ jobs:
                           pip install pipwin &&
                           pipwin install pyaudio &&
                           pip install pipenv &&
-                          pipenv install &&
+                          pipenv install --skip-lock &&
                           pyinstaller -F -w -n SwordDrill.exe -i icon.ico src/main.py &&
                           cd dist/ &&
                           Compress-Archive -LiteralPath SwordDrill.exe -DestinationPath SwordDrill-Windows.zip
