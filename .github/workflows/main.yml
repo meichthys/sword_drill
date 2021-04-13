@@ -34,7 +34,7 @@ jobs:
                           pipwin install pyaudio &&
                           pip install pipenv &&
                           pipenv install &&
-                          pyinstaller -D -w -n SwordDrill.exe -i icon.ico src/main.py &&
+                          pyinstaller -F -w -n SwordDrill.exe -i icon.ico src/main.py &&
                           Compress-Archive -LiteralPath SwordDrill.exe -DestinationPath SwordDrill-Windows.zip
 
     steps:
