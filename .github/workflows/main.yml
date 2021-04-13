@@ -22,9 +22,9 @@ jobs:
                           python -m venv .venv &&
                           pipenv install --skip-lock &&
                           source .venv/bin/activate &&
-                          pyinstaller -F -n SwordDrill.app -i icon.ico src/main.py &&
+                          pyinstaller -D -n SwordDrill -i icon.ico src/main.py &&
                           cd dist/ &&
-                          tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app
+                          tar -czf SwordDrill-MacOS.tar.gz SwordDrill
 
           - os: windows-latest
             file_name: SwordDrill-Windows.zip
