@@ -35,6 +35,7 @@ jobs:
                           pip install pipenv &&
                           pipenv install &&
                           pyinstaller -F -w -n SwordDrill.exe -i icon.ico src/main.py &&
+                          cd dist/ &&
                           Compress-Archive -LiteralPath SwordDrill.exe -DestinationPath SwordDrill-Windows.zip
 
     steps:
