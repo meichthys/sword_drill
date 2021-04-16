@@ -14,32 +14,29 @@ jobs:
     strategy:
       matrix:
         include:
-#           - os: macos-latest
-#             file_name: SwordDrill-MacOS.tar.gz
-#             BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
-#                           brew install portaudio &&
-#                           brew install pipenv &&
-#                           python -m venv .venv &&
-#                           pipenv install &&
-#                           pip install pyinstaller &&
-#                           source .venv/bin/activate &&
-#                           pyinstaller -F -n SwordDrill.app -i icon.ico src/main.py &&
-#                           cd dist/ &&
-#                           tar -czf SwordDrill-MacOS.tar.gz SwordDrill.app
-#                           # rm SwordDrill.app
+          - os: macos-latest
+            file_name: SwordDrill-MacOS.tar.gz
+            BUILD_COMMAND: /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" &&
+                          brew install portaudio &&
+                          brew install pipenv &&
+                          python -m venv .venv &&
+                          pipenv install --skip-lock &&
+                          source .venv/bin/activate &&
+                          pyinstaller -D -n SwordDrill -i icon.ico src/main.py &&
+                          cd dist/ &&
+                          tar -czf SwordDrill-MacOS.tar.gz SwordDrill
 
-         - os: windows-latest
-           file_name: SwordDrill-Windows.zip
-           BUILD_COMMAND: python -m venv .venv &&
-                         .venv/Scripts/activate &&
-                         pip install pipwin &&
-                         pipwin install pyaudio &&
-                         pip install pyinstaller &&
-                         pip install pipenv &&
-                         pipenv install &&
-                         pyinstaller -D -w -n SwordDrill.exe -i icon.ico src/main.py &&
-                         cd dist &&
-                         rm SwordDrill.exe
+          - os: windows-latest
+            file_name: SwordDrill-Windows.zip
+            BUILD_COMMAND: python -m venv .venv &&
+                          .venv/Scripts/activate &&
+                          pip install pipwin &&
+                          pipwin install pyaudio &&
+                          pip install pipenv &&
+                          pipenv install --skip-lock &&
+                          pyinstaller -F -w -n SwordDrill.exe -i icon.ico src/main.py &&
+                          cd dist/ &&
+                          Compress-Archive -LiteralPath SwordDrill.exe -DestinationPath SwordDrill-Windows.zip
 
     steps:
       # Checkout Source
