@@ -7,10 +7,11 @@ name = "pypi"
 requests = "*"
 speechrecognition = "*"
 pyaudio = "*"
+pyside2 = "*"
 pyinstaller = "*"
-pyqt5 = "==5.14.2"
 
 [dev-packages]
+pyinstaller = "*"
 
 [requires]
 python_version = "3.8"

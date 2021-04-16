@@ -1,12 +1,13 @@
 
 import logging
-from PyQt5.QtCore import pyqtSlot
+
+from PySide2.QtCore import Slot
 
 import requests
 import speech_recognition as sr
 from threading import Thread
 
-from PyQt5.QtWidgets import QMainWindow, QApplication
+from PySide2.QtWidgets import QMainWindow
 
 from gui.main_window import Ui_MainWindow
 from app import settings
@@ -22,7 +23,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
         self.ui_start.clicked.connect(self.start_recording_thread)
         logging.debug("Setting up background listener...")
 
-    @pyqtSlot()
+    @Slot()
     def start_recording_thread(self):
         """ Start recording thread """
         try:

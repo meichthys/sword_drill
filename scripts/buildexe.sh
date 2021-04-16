@@ -7,8 +7,10 @@ pyinstaller \
     --onefile \
     --specpath ../dist/ \
     --workpath ../dist/work/ \
+    --noconsole \
     --name "SwordDrill" \
-    --windowed \
+    --clean \
+    --debug=all \
     ../src/main.py
 
 # Cleanup uneeded files

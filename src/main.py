@@ -1,9 +1,15 @@
 """Contains main method and caller functions."""
+
+
+# Currently Required for Qt to work with MacOS Big Sur
+import os
+os.environ["QT_MAC_WANTS_LAYER"] = "1"
+
 import logging
 
 import sys
 
-from PyQt5.QtWidgets import QApplication
+from PySide2.QtWidgets import QApplication
 
 from app.utils import setup_logging
 from app.sword_drill import MainWindow

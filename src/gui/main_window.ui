@@ -33,7 +33,7 @@
        </font>
       </property>
       <property name="text">
-       <string>In the box above, enter microphone number from below and click &quot;Start Recording&quot;</string>
+       <string>In the box above, enter microphone number from below and click &quot;Start Recording&quot;.</string>
       </property>
       <property name="textFormat">
        <enum>Qt::PlainText</enum>
