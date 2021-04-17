@@ -33,7 +33,7 @@ exe = EXE(pyz,
           console=False )
 app = BUNDLE(exe,
              name='SwordDrill.app',
-             icon=None,
+             icon=icon.icns,
              bundle_identifier=None)
 
 
