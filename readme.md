@@ -22,7 +22,8 @@ To run, simply double click the executable (coming soon). If you are prompted, a
 Speech recognition isn't perfect, but most references should be recognized if they are spoken in a common way. There is a very brief period between recognized phrases where a word could be lost from the recording - and thus could cause a reference to be missed, but this should be very rare.
 
 ## Support ##
-![Matrix](https://matrix.to/#/#sworddrill:matrix.org)
+
+[Matrix](https://matrix.to/#/#sworddrill:matrix.org)
 
 ## Development ##
 
